@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>অয়নের ডিজিটাল ডায়েরি</title>
+    <style>
+        body { font-family: 'SolaimanLipi', sans-serif; background: #fdf5e6; padding: 20px; }
+        .box { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        textarea, input { width: 95%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 20px; cursor: pointer; }
+        .poem-list { margin-top: 30px; }
+        .post { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .reply { color: #1a73e8; font-style: italic; margin-left: 20px; border-left: 3px solid #1a73e8; padding-left: 10px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>✍️ কবিতা জমা দিন</h2>
+        <input type="text" id="userName" placeholder="আপনার নাম">
+        <input type="text" id="title" placeholder="কবিতার নাম">
+        <textarea id="poem" rows="5" placeholder="এখানে কবিতা লিখুন..."></textarea>
+        <button onclick="sendPoem()">জমা দিন</button>
+
+        <div class="poem-list" id="poemList"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <script>
+        // আপনার Firebase কনফিগারেশন এখানে বসান
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-GGAb4I03e6GPI48v56pd4gzQ_Mes1Nk",
+            databaseURL: "https://ayandyri-default-rtdb.firebaseio.com/",
+            projectId: "ayandyri",
+            storageBucket: "ayandyri.firebasestorage.app",
+            messagingSenderId: "969486629088",
+            appId: "1:969486629088:web:0f79778f5ba69f0774b885"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // কবিতা ডাটাবেসে পাঠানো
+        function sendPoem() {
+            const name = document.getElementById('userName').value;
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('poem').value;
+
+            if(name && content) {
+                database.ref('poems/').push({
+                    name: name,
+                    title: title,
+                    content: content,
+                    reply: "" // শুরুতে রিপ্লাই খালি থাকবে
+                });
+                alert("কবিতা জমা হয়েছে!");
+            }
+        }
+
+        // ডাটাবেস থেকে কবিতা রিয়েল-টাইম দেখানো
+        database.ref('poems/').on('value', (snapshot) => {
+            const list = document.getElementById('poemList');
+            list.innerHTML = "<h3>সব কবিতা:</h3>";
+            snapshot.forEach((child) => {
+                const data = child.val();
+                list.innerHTML += `
+                    <div class="post">
+                        <strong>${data.name}</strong> - <i>${data.title}</i>
+                        <p>${data.content}</p>
+                        ${data.reply ? `<div class="reply"><b>অয়ন-এর উত্তর:</b> ${data.reply}</div>` : ''}
+                    </div>
+                `;
+            });
+        });
+    </script>
+</body>
+</html>
