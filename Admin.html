@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>অয়ন - অ্যাডমিন প্যানেল</title>
+    <style>
+        body { font-family: 'SolaimanLipi', sans-serif; background: #eceff1; padding: 20px; }
+        .admin-box { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+        .poem-entry { border: 1px solid #cfd8dc; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+        .reply-box { width: 90%; padding: 8px; margin-top: 10px; border: 1px solid #90a4ae; }
+        .update-btn { background: #2e7d32; color: white; border: none; padding: 8px 15px; cursor: pointer; margin-top: 5px; }
+        .update-btn:hover { background: #1b5e20; }
+        h1 { color: #37474f; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="admin-box">
+        <h1>অ্যাডমিন ড্যাশবোর্ড 🖥️</h1>
+        <div id="adminPoemList">সব কবিতা লোড হচ্ছে...</div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <script>
+        // তোমার Firebase কনফিগারেশন (আগের ফাইলের মতো একই হবে)
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-GGAb4I03e6GPI48v56pd4gzQ_Mes1Nk",
+            databaseURL: "https://ayandyri-default-rtdb.firebaseio.com/",
+            projectId: "ayandyri",
+            storageBucket: "ayandyri.firebasestorage.app",
+            messagingSenderId: "969486629088",
+            appId: "1:969486629088:web:0f79778f5ba69f0774b885"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // কবিতাগুলো পড়া এবং রিপ্লাই অপশন দেওয়া
+        database.ref('poems/').on('value', (snapshot) => {
+            const list = document.getElementById('adminPoemList');
+            list.innerHTML = "";
+            snapshot.forEach((child) => {
+                const data = child.val();
+                const key = child.key; // ইউনিক আইডি
+                list.innerHTML += `
+                    <div class="poem-entry">
+                        <strong>লেখক:</strong> ${data.name} <br>
+                        <strong>শিরোনাম:</strong> ${data.title}
+                        <p><i>"${data.content}"</i></p>
+                        <textarea id="rep-${key}" class="reply-box" placeholder="রিপ্লাই লিখুন...">${data.reply || ''}</textarea> <br>
+                        <button class="update-btn" onclick="updateReply('${key}')">রিপ্লাই আপডেট করুন</button>
+                    </div>
+                `;
+            });
+        });
+
+        // নির্দিষ্ট কবিতায় রিপ্লাই সেভ করা
+        function updateReply(id) {
+            const replyText = document.getElementById(`rep-${id}`).value;
+            database.ref('poems/' + id).update({
+                reply: replyText
+            }).then(() => {
+                alert("রিপ্লাই পাঠানো হয়েছে!");
+            });
+        }
+    </script>
+</body>
+</html>
